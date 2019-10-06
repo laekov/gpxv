@@ -1,5 +1,9 @@
 #!/bin/bash
-OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES python3 main.py $1
-epstopdf 1.eps -o 1.pdf
-convert 1.pdf -channel RGB -negate $1$(date +%y%m%d).png
-rm 1.pdf 1.eps
+if [ $2. = . ]
+then
+	OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES python3 main.py $1
+	mv combined.png $1$(date +%y%m%d).png
+else
+	OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES python3 main.py $1 $2
+	mv combined.png comb$(date +%y%m%d).png
+fi
