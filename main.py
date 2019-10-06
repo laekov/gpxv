@@ -18,15 +18,17 @@ def parse_gpx(filename):
     lon = []
     last_tp = None
 
-    res = []
+    track = []
     for t in g.tracks:
         for seg in t.segments:
             for p in seg.points:
+                if last_tp is not None and abs(p.time - last_tp).seconds > 300:
+                    track.append((lat, lon))
+                    lat, lon = [], []
                 lat.append(p.latitude)
                 lon.append(p.longitude)
-                tp.append(p.time)
     print('Parsed {}'.format(filename))
-    return lat, lon, tp
+    return track
 
 
 if __name__ == '__main__':
@@ -45,15 +47,9 @@ if __name__ == '__main__':
         # colors = plt.cm.autumn(np.linspace(.5, 0, n))
         # colors = plt.cm.hsv(np.linspace(0, 1, n))
 
-        for i, (lat, lon, tp) in enumerate(coors):
-            r_lat, r_lon = [], []
-            for x, y, t in zip(lat, lon, tp):
-                if abs((t - last_tp).seconds) > 300:
-                    plt.plot(r_lon, r_lat, linewidth=1)
-                    r_lat, r_lon = [], []
-                r_lat.append(x)
-                r_lon.append(y)
-            plt.plot(r_lon, r_lat, linewidth=1)
+        for i, track in enumerate(coors):
+            for lat, lon in track:
+                plt.plot(r_lon, r_lat, linewidth=1)
 
     plt.gca().set_aspect('equal', adjustable='box')
 
