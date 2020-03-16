@@ -7,15 +7,26 @@ import os
 import sys
 import numpy as np
 import imageio 
+import pickle
 
 
 dirname = sys.argv[1]
 
 
 def parse_gpx(filename):
-    g = gpxpy.parse(open(filename, 'r'))
+    cachename = '.cache/{}'.format(filename.split('/')[-1])
+    if os.path.exists(cachename):
+        print('Found {} in cache'.format(filename))
+        with open(cachename, 'rb') as f:
+            return pickle.load(f)
+    try:
+        g = gpxpy.parse(open(filename, 'r'))
+    except:
+        print('{} cannot be parsed'.format(filename))
+        return None
 
     track = []
+    first_tp = None
     for t in g.tracks:
         for seg in t.segments:
             lat = []
@@ -24,14 +35,20 @@ def parse_gpx(filename):
             for p in seg.points:
                 if (last_tp is not None and
                         abs((p.time - last_tp).seconds) > 300):
-                    track.append((lat, lon))
+                    track.append((lat, lon, last_tp))
                     lat, lon = [], []
+                if first_tp is None:
+                    first_tp = p.time
                 lat.append(p.latitude)
                 lon.append(p.longitude)
                 last_tp = p.time
-            track.append((lat, lon))
+            track.append((lat, lon, last_tp))
     print('Parsed {}, segs {}'.format(filename, len(track)))
-    return track
+    if first_tp is None:
+        return None
+    with open(cachename, 'wb') as f:
+        pickle.dump((track, first_tp), f)
+    return track, first_tp
 
 
 def main():
@@ -50,25 +67,36 @@ def main():
     
     lines = []
     colorscheme = ['magenta', 'gold']
+    base_idx = 0
     for idx, dirname in enumerate(sys.argv[1:]):
         lines.append([])
         color = None if len(sys.argv) < 3 else colorscheme[idx]
         print('Series {}, color {}'.format(dirname, color))
-        for _ in os.listdir(dirname):
-            for (lat, lon) in coors.pop(0):
+        coor_i = coors[base_idx:base_idx + lens[idx]]
+        base_idx += lens[idx]
+        coor_i = [x[0] for x in sorted([c for c in coor_i if c is not None], key=lambda x: x[1])]
+        for c in coor_i:
+            for (lat, lon, _) in c:
                 lines[idx] += plt.plot(lon, lat, linewidth=1, color=color, 
                         alpha=.6, linestyle='none')
 
     gca = plt.gca()
     gca.set_aspect('equal', adjustable='box')
 
+    tot_lines = sum([len(l) for l in lines])
+    print('Num lines = {}'.format(tot_lines))
+
     for idx, dirname in enumerate(sys.argv[1:]):
-        for l in lines[idx]:
+        for i, l in enumerate(lines[idx]):
             l.set_linestyle('solid')
+            if 'PRINT_PROCESS' in os.environ:
+                plt.savefig('process/{}_{}.png'.format(idx, i), facecolor='black')
+                if i % 16 == 15:
+                    print('{} / {}'.format(i, tot_lines))
         plt.savefig('{}.png'.format(idx), facecolor='black')
         for l in lines[idx]:
             l.set_linestyle('none')
-        print('{}.png saved'.format(idx))
+        print('{}.png saved with {} lines'.format(idx, len(lines[idx])))
 
 
 def overlay():
