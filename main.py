@@ -3,6 +3,7 @@ from stat import ST_CTIME
 import random
 import gpxpy
 import matplotlib.pyplot as plt
+import matplotlib
 import os
 import sys
 import numpy as np
@@ -14,6 +15,7 @@ dirname = sys.argv[1]
 
 
 def parse_gpx(filename):
+
     cachename = '.cache/{}'.format(filename.split('/')[-1])
     if os.path.exists(cachename):
         print('Found {} in cache'.format(filename))
@@ -41,6 +43,12 @@ def parse_gpx(filename):
                     first_tp = p.time
                 lat.append(p.latitude)
                 lon.append(p.longitude)
+                if filename == 'trails/cdaoao/puhong_ride.gpx':
+                    lon[-1] -= 0.2
+                    lat[-1] -= 0.5
+                elif filename == 'trails/cdaoao/3382804135.gpx':
+                    lat[-1] -= 0.5
+
                 last_tp = p.time
             track.append((lat, lon, last_tp))
     print('Parsed {}, segs {}'.format(filename, len(track)))
@@ -67,16 +75,33 @@ def main():
     
     lines = []
     colorscheme = ['magenta', 'gold']
+
+    cmap = matplotlib.cm.get_cmap('plasma')
+
+    num_lines = 0
+    for coor_i in coors:
+        if coor_i is not None:
+            num_lines += len(coor_i)
+    i_lines = 0
+
     base_idx = 0
     for idx, dirname in enumerate(sys.argv[1:]):
         lines.append([])
-        color = None if len(sys.argv) < 3 else colorscheme[idx]
+        if len(sys.argv) < 3:
+            color = None
+        else:
+            color = colorscheme[idx]
         print('Series {}, color {}'.format(dirname, color))
         coor_i = coors[base_idx:base_idx + lens[idx]]
         base_idx += lens[idx]
-        coor_i = [x[0] for x in sorted([c for c in coor_i if c is not None], key=lambda x: x[1])]
-        for c in coor_i:
+        coor_i = [x for x in sorted([c for c in coor_i if c is not None], key=lambda x: x[1])]
+        tmin = min([c[1] for c in coor_i])
+        tmax = max([c[1] for c in coor_i])
+        for c, t in coor_i:
             for (lat, lon, _) in c:
+                if len(sys.argv) < 3:
+                    color = cmap((t - tmin) / (tmax - tmin) * .5 + .5)
+                    i_lines += 1
                 lines[idx] += plt.plot(lon, lat, linewidth=1, color=color, 
                         alpha=.6, linestyle='none')
 
