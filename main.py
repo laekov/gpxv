@@ -52,7 +52,7 @@ def parse_gpx(filename):
 
 
 def main():
-    fig = plt.figure(figsize=(16, 10))
+    fig = plt.figure(figsize=(32, 20))
     fig.patch.set_facecolor('black')
     plt.axis('off')
 
