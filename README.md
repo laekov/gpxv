@@ -19,7 +19,7 @@ Can further generate progressive video of how the trails are explored.
 
 Put all `.gpx` files in a directory. 
 
-i.e.
+e.g.
 
 ```
 gpxv/
@@ -48,7 +48,7 @@ An example result
 
 Put `gpx` files in different directorys. 
 
-i.e.
+e.g.
 
 ```
 gpxv/
