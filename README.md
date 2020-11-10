@@ -75,6 +75,10 @@ An example result
 
 ![](examples/comb.png)
 
+* Yellow: rider 1's trails
+* Purple: rider 2's trails
+* Pink: their common trails
+
 ### Plotting progressive pictures and generating video
 
 Set `PRINT_PROCESS` environment to any non-empty value to enable printing 
