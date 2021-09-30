@@ -7,16 +7,19 @@ import matplotlib
 import os
 import sys
 import numpy as np
-import imageio 
+import imageio
 import pickle
 
 
 dirname = sys.argv[1]
+cachedir = '.cache'
+if not os.path.isdir(cachedir):
+    os.makedirs(cachedir, exist_ok=True)
 
 
 def parse_gpx(filename):
 
-    cachename = '.cache/{}'.format(filename.split('/')[-1])
+    cachename = '{}/{}.pickle'.format(cachedir, filename.split('/')[-1])
     if os.path.exists(cachename):
         print('Found {} in cache'.format(filename))
         with open(cachename, 'rb') as f:
